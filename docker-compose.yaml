@@ -1,0 +1,37 @@
+version: "3.9"
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - 5672:5672  # Porta para comunicação do RabbitMQ
+      - 15672:15672  # Porta para o management web UI
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+  
+  receive:
+    image: mcr.microsoft.com/dotnet/sdk:8.0  # Especifica a imagem do .NET SDK 8.0
+    container_name: receive-app
+    build:
+      context: ./receive  # Caminho onde o projeto 'receive' está localizado
+    depends_on:
+      - rabbitmq
+    volumes:
+      - ./receive:/app  # Monta a pasta local 'receive' no container
+    working_dir: /app  # Define o diretório de trabalho no container
+    command: ["dotnet", "run"]  # Comando para rodar o projeto
+    
+  send:
+    image: mcr.microsoft.com/dotnet/sdk:8.0  # Especifica a imagem do .NET SDK 8.0
+    container_name: send-app
+    build:
+      context: ./send  # Caminho onde o projeto 'send' está localizado
+    depends_on:
+      - rabbitmq
+    volumes:
+      - ./send:/app  # Monta a pasta local 'send' no container
+    working_dir: /app  # Define o diretório de trabalho no container
+    command: ["dotnet", "run"]  # Comando para rodar o projeto
+
+volumes:
+  rabbitmq_data:
